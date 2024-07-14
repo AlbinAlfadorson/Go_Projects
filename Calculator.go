@@ -12,7 +12,7 @@ var romanNumerals = map[string]int{
     "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10,
 }
 
-// Срез для быстрого преобразования арабских чисел в римские
+// Массив (слайс) - для быстрого преобразования арабских чисел в римские
 var arabicToRoman = []string{
     "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
     "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX",
