@@ -12,7 +12,7 @@ var romanNumerals = map[string]int{
     "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10,
 }
 
-// Массив (слайс) - для быстрого преобразования арабских чисел в римские
+// Массив для быстрого преобразования арабских чисел в римские
 var arabicToRoman = []string{
     "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
     "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX",
@@ -27,25 +27,60 @@ var arabicToRoman = []string{
 }
 
 func main() {
-    var input string
-    fmt.Print("Введите выражение: ")
-    fmt.Scanln(&input) // Считываем ввод пользователя
+    // Бесконечный цикл для непрерывной работы калькулятора
+    for {
+        var input string
+        fmt.Print("Введите выражение (или 'выход' для завершения): ")
+        fmt.Scanln(&input)
 
-    parts := strings.Fields(input) // Разбиваем ввод на части
+        // Проверка на выход из программы
+        if strings.ToLower(strings.TrimSpace(input)) == "выход" {
+            fmt.Println("Калькулятор завершает работу.")
+            break
+        }
+
+        // Вычисление результата
+        result, err := calculate(input)
+        if err != nil {
+            fmt.Println("Ошибка:", err)
+            continue
+        }
+
+        fmt.Println("Результат:", result)
+    }
+}
+
+// Функция для вычисления результата выражения
+func calculate(input string) (string, error) {
+    // Разбиваем ввод на части
+    parts := strings.Fields(input)
     if len(parts) != 3 {
-        panic("Неверный формат ввода") // Проверяем, что ввод состоит из трех частей
+        return "", fmt.Errorf("неверный формат ввода")
     }
 
-    a, aIsRoman := parseNumber(parts[0]) // Парсим первое число
-    b, bIsRoman := parseNumber(parts[2]) // Парсим второе число
-    op := parts[1] // Получаем операцию
+    // Парсим первое число
+    a, aIsRoman, err := parseNumber(parts[0])
+    if err != nil {
+        return "", err
+    }
 
+    // Парсим второе число
+    b, bIsRoman, err := parseNumber(parts[2])
+    if err != nil {
+        return "", err
+    }
+
+    // Проверяем, что оба числа в одной системе счисления
     if aIsRoman != bIsRoman {
-        panic("Использование одновременно разных систем счисления не допускается")
+        return "", fmt.Errorf("использование одновременно разных систем счисления не допускается")
     }
 
+    // Получаем операцию
+    op := parts[1]
     var result int
-    switch op { // Выполняем соответствующую операцию
+
+    // Выполняем соответствующую операцию
+    switch op {
     case "+":
         result = a + b
     case "-":
@@ -54,31 +89,35 @@ func main() {
         result = a * b
     case "/":
         if b == 0 {
-            panic("Деление на ноль")
+            return "", fmt.Errorf("деление на ноль")
         }
         result = a / b
     default:
-        panic("Неподдерживаемая операция")
+        return "", fmt.Errorf("неподдерживаемая операция")
     }
 
+    // Возвращаем результат в соответствующей системе счисления
     if aIsRoman {
         if result <= 0 {
-            panic("Результат работы с римскими числами должен быть больше нуля")
+            return "", fmt.Errorf("результат работы с римскими числами должен быть больше нуля")
         }
-        fmt.Println(arabicToRoman[result]) // Выводим результат в римской системе
-    } else {
-        fmt.Println(result) // Выводим результат в арабских числах
+        return arabicToRoman[result], nil
     }
+
+    return strconv.Itoa(result), nil
 }
 
-func parseNumber(s string) (int, bool) {
+// Функция для парсинга числа (римского или арабского)
+func parseNumber(s string) (int, bool, error) {
+    // Проверяем, является ли число римским
     if val, ok := romanNumerals[s]; ok {
-        return val, true // Если это римское число, возвращаем его арабский эквивалент и true
+        return val, true, nil
     }
-    
+
+    // Если не римское, пробуем преобразовать в арабское
     num, err := strconv.Atoi(s)
     if err != nil || num < 1 || num > 10 {
-        panic("Неверное число: " + s) // Если число не в диапазоне от 1 до 10, вызываем панику
+        return 0, false, fmt.Errorf("неверное число: %s", s)
     }
-    return num, false // Возвращаем арабское число и false (не римское)
+    return num, false, nil
 }
