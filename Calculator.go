@@ -1,18 +1,18 @@
 package main
 
 import (
+    "bufio"
     "fmt"
+    "os"
     "strconv"
     "strings"
 )
 
-// Словарь для преобразования римских чисел в арабские
 var romanNumerals = map[string]int{
     "I": 1, "II": 2, "III": 3, "IV": 4, "V": 5,
     "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10,
 }
 
-// Массив для быстрого преобразования арабских чисел в римские
 var arabicToRoman = []string{
     "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
     "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX",
@@ -27,19 +27,17 @@ var arabicToRoman = []string{
 }
 
 func main() {
-    // Бесконечный цикл для непрерывной работы калькулятора
+    reader := bufio.NewReader(os.Stdin)
     for {
-        var input string
         fmt.Print("Введите выражение (или 'выход' для завершения): ")
-        fmt.Scanln(&input)
+        input, _ := reader.ReadString('\n')
+        input = strings.TrimSpace(input)
 
-        // Проверка на выход из программы
-        if strings.ToLower(strings.TrimSpace(input)) == "выход" {
+        if strings.ToLower(input) == "выход" {
             fmt.Println("Калькулятор завершает работу.")
             break
         }
 
-        // Вычисление результата
         result, err := calculate(input)
         if err != nil {
             fmt.Println("Ошибка:", err)
@@ -50,36 +48,29 @@ func main() {
     }
 }
 
-// Функция для вычисления результата выражения
 func calculate(input string) (string, error) {
-    // Разбиваем ввод на части
     parts := strings.Fields(input)
     if len(parts) != 3 {
         return "", fmt.Errorf("неверный формат ввода")
     }
 
-    // Парсим первое число
     a, aIsRoman, err := parseNumber(parts[0])
     if err != nil {
         return "", err
     }
 
-    // Парсим второе число
     b, bIsRoman, err := parseNumber(parts[2])
     if err != nil {
         return "", err
     }
 
-    // Проверяем, что оба числа в одной системе счисления
     if aIsRoman != bIsRoman {
         return "", fmt.Errorf("использование одновременно разных систем счисления не допускается")
     }
 
-    // Получаем операцию
     op := parts[1]
     var result int
 
-    // Выполняем соответствующую операцию
     switch op {
     case "+":
         result = a + b
@@ -96,7 +87,6 @@ func calculate(input string) (string, error) {
         return "", fmt.Errorf("неподдерживаемая операция")
     }
 
-    // Возвращаем результат в соответствующей системе счисления
     if aIsRoman {
         if result <= 0 {
             return "", fmt.Errorf("результат работы с римскими числами должен быть больше нуля")
@@ -107,14 +97,11 @@ func calculate(input string) (string, error) {
     return strconv.Itoa(result), nil
 }
 
-// Функция для парсинга числа (римского или арабского)
 func parseNumber(s string) (int, bool, error) {
-    // Проверяем, является ли число римским
     if val, ok := romanNumerals[s]; ok {
         return val, true, nil
     }
 
-    // Если не римское, пробуем преобразовать в арабское
     num, err := strconv.Atoi(s)
     if err != nil || num < 1 || num > 10 {
         return 0, false, fmt.Errorf("неверное число: %s", s)
